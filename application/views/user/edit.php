@@ -8,32 +8,43 @@ $User = Config::getObject('core.user.class');
 <?php include('includes/admin-users-nav.php'); ?>
 
 
-<h2><?= $editAdminusersTitle ?>
-    <span>
-        <?= $User->returnIfAllowed("admin/adminusers/delete", 
-            "<a href=" . $Url::link("admin/adminusers/delete&id=" . $_GET['id']) 
-            . ">[Удалить]</a>");?>
-    </span>
-</h2>
+<form id="editUser" method="post" action="<?= $Url::link("admin/adminusers/editUser&id=" . $_GET['id'])?>">
+    <h1><?php echo htmlspecialchars($results['pageTitle']); ?></h1>
 
-<form id="editUser" method="post" action="<?= $Url::link("admin/adminusers/edit&id=" . $_GET['id'])?>">
-    <h5>Введите имя пользователя</h5>
-    <input type="text" name="login" placeholder="логин пользователя" value="<?= $viewAdminusers->login ?>"><br>
-    <h5>Введите пароль</h5>
-    <input type="text" name="pass" placeholder="новый пароль" value=""><br>
-    <h5>Введите e-mail</h5>
-    <input type="text" name="email"  placeholder="email" value="<?= $viewAdminusers->email ?>"><br>
-    <h5>Выберите роль</h5>
-    </pre>
-        <select name="role">
-            <option value="auth_user"<?php if($roleUser == 'auth_user') echo " selected"?>>Авторизованный пользователь</option>
-            <option value="admin"<?php if($roleUser == 'admin') echo " selected"?>>Админ</option>
-        </select>
-    <pre>
+    <input type="hidden" name="userId" value="<?php echo $results['user']->id; ?>"/>
     
-    </pre>
-        <input type="hidden" name="id" value="<?= $_GET['id']; ?>">
-        <input type="submit" name="saveChanges" value="Сохранить">
-        <input type="submit" name="cancel" value="Назад">
-    <pre>
+    <ul>
+        <li>
+            <label for="login">Username</label>
+            <input type="text" name="login" id="login" 
+                placeholder="Username" required 
+                value="<?php echo htmlspecialchars($results['user']->login ?? ''); ?>"/>
+        </li>
+        
+        <li>
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" 
+                placeholder="Password" required value=<?php $results['user']->pass?> />
+            
+        </li>
+        
+        <li>
+            <label for="active">Active</label>
+            <input type="checkbox" name="active"
+                value="1" <?php if($results['user']->active) echo "checked"; ?>/>
+        </li>
+    </ul>
+        
+    <div class="buttons">
+        <input type="submit" name="saveChanges" value="Save Changes"/>
+        <input type="submit" formnovalidate name="cancel" value="Cancel"/>
+    </div>
+
+    <?php if ($results['user']->id) { ?>
+            <p>
+                <?= $User->returnIfAllowed("admin/adminusers/deleteUser", 
+                "<a href=" . $Url::link("admin/adminusers/deleteUser&id=" . $_GET['id']) 
+                . ">[Удалить]</a>");?>
+            </p>
+    <?php } ?>
 </form>
