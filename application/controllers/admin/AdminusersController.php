@@ -30,8 +30,11 @@ class AdminusersController extends \ItForFree\SimpleMVC\MVC\Controller
             $this->view->render('user/view-item.php');
         } else { // выводим полный список
             
-            $users = $Adminusers->getList()['results'];
+            $data = $Adminusers->getList();
+            $users = $data['results'];
+            $totalRows = $data['totalRows'];
             $this->view->addVar('users', $users);
+            $this->view->addVar('totalRows', $totalRows);
             $this->view->render('user/index.php');
         }
     }
@@ -39,9 +42,12 @@ class AdminusersController extends \ItForFree\SimpleMVC\MVC\Controller
     /**
      * Создание нового пользователя
      */
-    public function addAction()
+    public function addUserAction()
     {
         $Url = Config::get('core.router.class');
+        $results = array();
+        $results['pageTitle'] = "Add User";
+        $results['formAction'] = "addUser";
         if (!empty($_POST)) {
             if (!empty($_POST['saveNewUser'])) {
                 $Adminusers = new UserModel();
@@ -53,8 +59,8 @@ class AdminusersController extends \ItForFree\SimpleMVC\MVC\Controller
                 $this->redirect($Url::link("admin/adminusers/index"));
             }
         } else {
-            $addAdminusersTitle = "Регистрация пользователя";
-            $this->view->addVar('addAdminusersTitle', $addAdminusersTitle);
+            $results['user'] = new UserModel();
+            $this->view->addVar('results', $results);
             
             $this->view->render('user/add.php');
         }
@@ -63,18 +69,20 @@ class AdminusersController extends \ItForFree\SimpleMVC\MVC\Controller
     /**
      * Редактирование пользователя
      */
-    public function editAction()
+    public function editUserAction()
     {
         $id = $_GET['id'];
         $Url = Config::get('core.router.class');
+        $results = array();
+        $results['pageTitle'] = "Edit User";
+        $results['formAction'] = "editUser";
         
         if (!empty($_POST)) { // это выполняется нормально.
             
             if (!empty($_POST['saveChanges'] )) {
                 $Adminusers = new UserModel();
-                if($_POST['pass'] == "")
-                    $_POST['pass'] = $Adminusers->getById($_POST['id'])->pass;
                 $newAdminusers = $Adminusers->loadFromArray($_POST);
+                $newAdminusers->id = (int)$_GET['id'];
                 $newAdminusers->update();
                 $this->redirect($Url::link("admin/adminusers/index&id=$id"));
             } 
@@ -83,14 +91,10 @@ class AdminusersController extends \ItForFree\SimpleMVC\MVC\Controller
             }
         } else {
             $Adminusers = new UserModel();
-            $viewAdminusers = $Adminusers->getById($id);
-            $roleUser = $Adminusers->getRole($viewAdminusers->login);
+            $results['user'] = $Adminusers->getById($id);
             
-            $editAdminusersTitle = "Редактирование данных пользователя";
-            
-            $this->view->addVar('viewAdminusers', $viewAdminusers);
-            $this->view->addVar('editAdminusersTitle', $editAdminusersTitle);
-            $this->view->addVar('roleUser', $roleUser);
+            $this->view->addVar('results', $results);
+    
             
             $this->view->render('user/edit.php');   
         }
@@ -100,7 +104,7 @@ class AdminusersController extends \ItForFree\SimpleMVC\MVC\Controller
     /**
      * Удаление пользователя
      */
-    public function deleteAction()
+    public function deleteUserAction()
     {
         $id = $_GET['id'];
         $Url = Config::get('core.router.class');
@@ -109,19 +113,20 @@ class AdminusersController extends \ItForFree\SimpleMVC\MVC\Controller
             if (!empty($_POST['deleteUser'])) {
                 $Adminusers = new UserModel();
                 $newAdminusers = $Adminusers->loadFromArray($_POST);
+                $newAdminusers->id = (int)$_GET['id'];
                 $newAdminusers->delete();
                 
                 $this->redirect($Url::link("admin/adminusers/index"));
               
             }
             elseif (!empty($_POST['cancel'])) {
-                $this->redirect($Url::link("admin/adminusers/edit&id=$id"));
+                $this->redirect($Url::link("admin/adminusers/editUser&id=$id"));
             }
         } else {
             
             $Adminusers = new UserModel();
             $deletedAdminusers = $Adminusers->getById($id);
-            $deleteAdminusersTitle = "Удаление статьи";
+            $deleteAdminusersTitle = "Удаление пользователя";
             
             $this->view->addVar('deleteAdminusersTitle', $deleteAdminusersTitle);
             $this->view->addVar('deletedAdminusers', $deletedAdminusers);
